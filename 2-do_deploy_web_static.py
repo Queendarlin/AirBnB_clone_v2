@@ -4,7 +4,7 @@ Fabric script to deploy an archive to web servers.
 """
 
 from fabric.api import env, put, run
-import os
+from os.path import exists
 
 # Define the list of web servers
 env.hosts = ['18.204.16.143', '54.236.53.174']
@@ -17,37 +17,20 @@ def do_deploy(archive_path):
         :param archive_path: (str) Path to the archive file to deploy.
         :return: True if deployment is successful, False otherwise.
     """
-
-    # Check if the archive file exists
-    if not os.path.exists(archive_path):
-        print(f"Error: Archive file {archive_path} not found.")
+    if exists(archive_path) is False:
         return False
-
     try:
-        # Upload the archive to the /tmp/ directory of the web server
+        file_n = archive_path.split("/")[-1]
+        no_ext = file_n.split(".")[0]
+        path = "/data/web_static/releases/"
         put(archive_path, '/tmp/')
-
-        # Get the filename without extension from the archive_path
-        archive_filename = os.path.basename(archive_path).split('.')[0]
-
-        # Create the folder for the new version
-        run('mkdir -p /data/web_static/releases/{}'.format(archive_filename))
-
-        # Uncompress the archive to the folder on the web server
-        run('tar -xzf /tmp/{}.tgz -C /data/web_static/releases/{}/'.format(
-            archive_filename, archive_filename))
-
-        # Delete the archive from the web server
-        run('rm /tmp/{}.tgz'.format(archive_filename))
-
-        # Delete the symbolic link /data/web_static/current from the web server
+        run('mkdir -p {}{}/'.format(path, no_ext))
+        run('tar -xzf /tmp/{} -C {}{}/'.format(file_n, path, no_ext))
+        run('rm /tmp/{}'.format(file_n))
+        run('mv {0}{1}/web_static/* {0}{1}/'.format(path, no_ext))
+        run('rm -rf {}{}/web_static'.format(path, no_ext))
         run('rm -rf /data/web_static/current')
-
-        # Create a new symbolic link linked to the new version of your code
-        run('ln -s /data/web_static/releases/{}/ /data/web_static/current'
-            .format(archive_filename))
-
-        print('New version deployed!')
+        run('ln -s {}{}/ /data/web_static/current'.format(path, no_ext))
         return True
     except Exception as e:
         print(f"Error deploying archive: {e}")
