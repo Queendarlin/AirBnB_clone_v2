@@ -17,8 +17,7 @@ def teardown_appcontext(exception):
 @app.route('/states_list', strict_slashes=False)
 def states_list():
     """Display a list of states in HTML format"""
-    states = storage.all(State)
-    sorted_states = sorted(states.values(), key=lambda x: x.name)
+    sorted_states = sorted(list(storage.all("State").values()), key=lambda x: x.name)
 
     return render_template('7-states_list.html', states=sorted_states)
 
