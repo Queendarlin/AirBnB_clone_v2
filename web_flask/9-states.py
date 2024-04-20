@@ -1,28 +1,29 @@
 #!/usr/bin/python3
-""" Cities by States Module for HBNB project """
+"""
+start Flask application
+"""
 
 from flask import Flask, render_template
+from models import *
 from models import storage
-from models.state import State
-
 app = Flask(__name__)
 
 
 @app.route('/states', strict_slashes=False)
-def list_states():
-    """ Display a list of states sorted by name """
-    states = storage.all(State).values()
-    states_sorted = sorted(states, key=lambda x: x.name)
-    return render_template('9-states.html', states=states_sorted)
-@app.route('/states/<id>', strict_slashes=False)
-def state_id():
+@app.route('/states/<state_id>', strict_slashes=False)
+def list_states(state_id=None):
+    """display the states and cities listed in alphabetical order"""
+    states = storage.all("State")
+    if state_id is not None:
+        state_id = 'State.' + state_id
+    return render_template('9-states.html', states=states, state_id=state_id)
 
 
 @app.teardown_appcontext
-def teardown_appcontext(exception):
-    """Remove the current SQLAlchemy Session"""
+def teardown_db(exception):
+    """closes the storage on teardown"""
     storage.close()
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port='5000')
