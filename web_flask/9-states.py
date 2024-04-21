@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-start Flask application
+starts a Flask web application
 """
 
 from flask import Flask, render_template
@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 @app.route('/states', strict_slashes=False)
 @app.route('/states/<state_id>', strict_slashes=False)
-def list_states(state_id=None):
+def states_list(state_id=None):
     """display the states and cities listed in alphabetical order"""
     states = storage.all("State")
     if state_id is not None:
