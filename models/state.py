@@ -1,32 +1,34 @@
 #!/usr/bin/python3
-""" State Module for HBNB project """
+"""This is the state class"""
 from models.base_model import BaseModel, Base
-from sqlalchemy.orm import relationship
-from sqlalchemy import Column, String
-import models
 from models.city import City
-import shlex
+from sqlalchemy import Column, Integer, String, ForeignKey, MetaData
+from sqlalchemy.orm import relationship, backref
+import models
+from os import environ
 
 
 class State(BaseModel, Base):
-    """ State class """
-    __tablename__ = "states"
+    """This is the class for State
+    Attributes:
+        name: input name
+    """
+    __tablename__ = 'states'
     name = Column(String(128), nullable=False)
-    cities = relationship("City", cascade='all, delete, delete-orphan',
-                          backref="state")
 
-    @property
-    def cities(self):
-        """ Getter method to fetch cities related to the state """
-        var = models.storage.all()
-        city_list = []
-        result = []
-        for key in var:
-            city = key.replace('.', ' ')
-            city = shlex.split(city)
-            if city[0] == 'City':
-                city_list.append(var[key])
-        for elements in city_list:
-            if elements.state_id == self.id:
-                result.append(elements)
-        return result
+    if environ.get('HBNB_TYPE_STORAGE') == "db":
+        cities = relationship("City",
+                              backref="state",
+                              cascade="all, delete, delete-orphan")
+    else:
+
+        @property
+        def cities(self):
+            """ Returns the list of City instances with """
+            all_cities = models.storage.all(City)
+            state_cities = []
+            for city_ins in all_cities.values():
+                if city_ins.state_id == self.id:
+                    state_cities.append(city_ins)
+
+            return state_cities
